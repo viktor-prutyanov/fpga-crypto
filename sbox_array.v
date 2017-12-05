@@ -3,6 +3,7 @@ module sbox_array(
     output [31:0]OUT
 );
 
+//sbox_t sbox7 (.IN(IN[3:0]  ), .OUT(OUT[3:0]  ));
 sbox #(.init_file("sbox7.txt")) sbox7 (.IN(IN[3:0]  ), .OUT(OUT[3:0]  ));
 sbox #(.init_file("sbox6.txt")) sbox6 (.IN(IN[7:4]  ), .OUT(OUT[7:4]  ));
 sbox #(.init_file("sbox5.txt")) sbox5 (.IN(IN[11:8] ), .OUT(OUT[11:8] ));

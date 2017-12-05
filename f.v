@@ -1,7 +1,7 @@
 module f (
     input [31:0]X,
     input [31:0]K,
-    output [31:0]Y    
+    output [31:0]Y
 );
 
 wire [31:0]f1 = X + K;
