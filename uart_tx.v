@@ -18,7 +18,8 @@ always @(posedge CLK or posedge START) begin
         uart_clk <= 1'b1;
 	end
 	else begin
-    	if (cnt == 5000) begin // 48_000_000 = 5000 * 9600
+    	if (cnt == 1250) begin // 48_000_000 = 5000 * 9600
+    	//if (cnt == 5000) begin // 48_000_000 = 5000 * 9600
     	    cnt <= 13'b0;
     	    uart_clk <= 1'b1;
     	end

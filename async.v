@@ -22,7 +22,7 @@ module async_transmitter(
 // TxD_data is latched so that it doesn't have to stay valid while it is being sent
 
 parameter ClkFrequency = 48000000;	// 25MHz
-parameter Baud = 9600;
+parameter Baud = 38400;
 
 generate
 	if(ClkFrequency<Baud*8 && (ClkFrequency % Baud!=0)) ASSERTION_ERROR PARAMETER_OUT_OF_RANGE("Frequency incompatible with requested Baud rate");
@@ -85,7 +85,7 @@ module async_receiver(
 );
 
 parameter ClkFrequency = 48000000; // 25MHz
-parameter Baud = 9600;
+parameter Baud = 38400;
 
 parameter Oversampling = 8;  // needs to be a power of 2
 // we oversample the RxD line at a fixed rate to capture each RxD data bit at the "right" time
@@ -186,7 +186,7 @@ module BaudTickGen(
 	output tick  // generate a tick at the specified baud rate * oversampling
 );
 parameter ClkFrequency = 48000000;
-parameter Baud = 9600;
+parameter Baud = 38400;
 parameter Oversampling = 1;
 
 function integer log2(input integer v); begin log2=0; while(v>>log2) log2=log2+1; end endfunction
