@@ -26,9 +26,12 @@ ifcell ifc (
 initial begin
     #1 $display("y  = %h", y);
     $display("x' = %h", x_dec);
-    if (x == x_dec) begin
+    
+    if (x == x_dec)
         $display("[PASSED]");
-    end
+    else 
+        $display("[FAILED]");
+    
     $finish;
 end
 

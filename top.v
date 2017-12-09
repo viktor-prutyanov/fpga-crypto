@@ -6,22 +6,41 @@ module top
     output DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G,
 
 	input TXD,
-	output RXD
+	output RXD,
+
+	input KEY1
 );
 
-wire [63:0]in = buffer; //in_buffer;//64'hDEADBEEFBAADF00D;
 wire [255:0]key = 256'h1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100;
-wire [63:0]out;
 
+wire [63:0]enc_in = enc_buffer;
+wire [63:0]enc_out;
 fnet fnet (
-    .IN(in),
+    .IN(enc_in),
     .KEY(key),
-    .OUT(out)
+    .OUT(enc_out)
 );
 
-wire [63:0]longword = out_buffer;
-reg [15:0]word;
-reg [25:0]cnt = 0;
+wire [63:0]dec_in = dec_buffer;
+wire [63:0]dec_out;
+ifnet ifnet (
+    .IN(dec_in),
+    .KEY(key),
+    .OUT(dec_out)
+);
+
+reg mode = 1'b1; //1 for encrypt, 0 for decrypt
+reg mode_set = 1'b0;
+
+always @(posedge KEY1) begin
+	mode <= ~mode;
+end
+
+wire [63:0]out = mode ? enc_out : dec_out;
+
+//wire [63:0]longword = mode;
+wire [15:0]word = mode;
+/*reg [25:0]cnt = 0;
 always @(posedge CLK) begin
 	cnt <= cnt + 1;
 	case (cnt[25:24])
@@ -30,7 +49,7 @@ always @(posedge CLK) begin
 	2'b10: word <= longword[31:16];
 	2'b11: word <= longword[15:0];
 	endcase
-end
+end*/
 
 wire [7:0]uart_rx_data;
 wire uart_ready;
@@ -40,6 +59,8 @@ async_receiver ar(
 	.RxD_data_ready(uart_ready),
 	.RxD_data(uart_rx_data)
 );
+
+wire [63:0]in_data = { in_buffer[63:8], uart_rx_data };
 
 reg [63:0]in_buffer = 64'h0;
 reg [2:0]uart_read_state = 3'b000;
@@ -75,9 +96,17 @@ always @(posedge CLK) begin
             uart_read_state <= 3'b111;
         end
         3'b111: begin
-            in_buffer[7:0] <= uart_rx_data; 
+            if (&in_data & ~mode_set) begin
+                mode_set <= 1'b1;
+            end
+            
+			if (mode)
+                enc_buffer <= in_data;
+            else
+                dec_buffer <= in_data;
+
+            in_buffer[7:0] <= uart_rx_data;
             uart_read_state <= 3'b000;
-            buffer <= { in_buffer[63:8], uart_rx_data };
             buffer_ready <= 1'b1;
         end
         endcase 
@@ -87,7 +116,8 @@ always @(posedge CLK) begin
     end
 end
 
-reg [63:0]buffer = 64'h0;
+reg [63:0]enc_buffer = 64'h0;
+reg [63:0]dec_buffer = 64'h0;
 reg buffer_ready = 1'b0;
 
 reg [7:0]uart_tx_data;
