@@ -1,9 +1,9 @@
 module uart_tx
 (
     input CLK,
-    
+
     output reg TXD = 1'b1,
-	input [0:0]START,
+	input START,
 	input [7:0]DATA,
     output BUSY
 );
@@ -18,8 +18,7 @@ always @(posedge CLK or posedge START) begin
         uart_clk <= 1'b1;
 	end
 	else begin
-    	if (cnt == 1250) begin // 48_000_000 = 5000 * 9600
-    	//if (cnt == 5000) begin // 48_000_000 = 5000 * 9600
+    	if (cnt == 1250) begin // 48_000_000 = 1250 * 38400
     	    cnt <= 13'b0;
     	    uart_clk <= 1'b1;
     	end

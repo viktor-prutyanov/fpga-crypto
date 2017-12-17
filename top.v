@@ -8,10 +8,10 @@ module top
 	input TXD,
 	output RXD,
 
-	input KEY1
+	input KEY1, KEY2, KEY3
 );
 
-wire [255:0]key = 256'h1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100;
+wire [255:0]key = 256'h1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100 ^ {{8{pin}}, {16{{pin[7:0], pin[15:8]}}}, {8{pin}}};
 
 wire [63:0]enc_in = enc_buffer;
 wire [63:0]enc_out;
@@ -32,32 +32,31 @@ ifnet ifnet (
 reg mode = 1'b1; //1 for encrypt, 0 for decrypt
 reg mode_set = 1'b0;
 
-always @(posedge KEY1) begin
-	mode <= ~mode;
+reg [15:0]pin = 16'b0;
+
+reg [23:0]cnt = 0;
+always @(posedge CLK) begin
+	cnt <= cnt + 1;
+    if (~|cnt[22:0] & ~KEY3)
+        pin[7:0] <= pin[7:0] + 1;
+    if (~|cnt[22:0] & ~KEY2)
+        pin[15:8] <= pin[15:8] + 1;
+    if (~|cnt & ~KEY1)
+        mode <= ~mode;
 end
 
 wire [63:0]out = mode ? enc_out : dec_out;
 
-//wire [63:0]longword = mode;
-wire [15:0]word = mode;
-/*reg [25:0]cnt = 0;
-always @(posedge CLK) begin
-	cnt <= cnt + 1;
-	case (cnt[25:24])
-	2'b00: word <= longword[63:48];
-	2'b01: word <= longword[47:32];
-	2'b10: word <= longword[31:16];
-	2'b11: word <= longword[15:0];
-	endcase
-end*/
+wire [15:0]word = pin;
 
-wire [7:0]uart_rx_data;
+wire [7:0]uart_rx_data1;
+wire [7:0]uart_rx_data = uart_rx_data1; //^ pin[7:0];
 wire uart_ready;
 async_receiver ar(
 	.clk(CLK),
 	.RxD(TXD),
 	.RxD_data_ready(uart_ready),
-	.RxD_data(uart_rx_data)
+	.RxD_data(uart_rx_data1)
 );
 
 wire [63:0]in_data = { in_buffer[63:8], uart_rx_data };
@@ -194,6 +193,7 @@ end
 
 ssd ssd_inst(
     .CLK(CLK),
+    .EN(mode),
     .SEN1(DS_EN1), .SEN2(DS_EN2), .SEN3(DS_EN3), .SEN4(DS_EN4),
     .SSA(DS_A), .SSB(DS_B), .SSC(DS_C), .SSD(DS_D), .SSE(DS_E), .SSF(DS_F), .SSG(DS_G),
     .WORD(word)

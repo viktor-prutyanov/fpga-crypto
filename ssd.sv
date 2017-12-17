@@ -1,8 +1,9 @@
 module ssd //Seven-segment display
 (
     input CLK,
-    
     input [15:0]WORD,
+    input EN,
+
     output SEN1, SEN2, SEN3, SEN4,
     output SSA, SSB, SSC, SSD, SSE, SSF, SSG    
 );
@@ -13,7 +14,7 @@ always @(posedge CLK) begin
 end
 
 wire [3:0]sen; //segment enable
-assign {SEN1, SEN2, SEN3, SEN4} = sen;
+assign {SEN1, SEN2, SEN3, SEN4} = EN ? sen : 4'b1111;
 wire [3:0]hb; //half-byte part of word
 always_comb begin
     case (cnt[15:14])
